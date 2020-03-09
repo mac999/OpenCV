@@ -1,4 +1,6 @@
 # Program: caculate similarity between 2D geometry using vector
+# Author: Kang Tae Wook. laputa99999@gmail.com
+# Date: 2020.1
 import cv2
 import numpy
 
