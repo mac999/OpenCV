@@ -15,11 +15,11 @@ def readContour(file):
 		tokens = line.split(',')
 		if len(tokens) < 2:
 			break;
-		x = int(tokens[0])
-		y = int(tokens[1])
+		x = float(tokens[0])
+		y = float(tokens[1])
 		z = 0.0
 		if len(tokens) >= 3:
-			z = int(tokens[2])
+			z = float(tokens[2])
 		pt = [x, y]
 		pts.append(pt)	
 	f.close()
@@ -44,18 +44,30 @@ def scaleNormalize(contours, size):
 			ylist.append(float(y))
 	minx = min(xlist)
 	maxx = max(xlist)
+	miny = min(ylist)
+	maxy = max(ylist)
+
+	contoursInt = []
 	originSizeX = maxx - minx
-	scale = float(size - 1) / float(originSizeX)
+	originSizeY = maxy - miny
+	maxSize = max([originSizeX, originSizeY])
+	scale = float(size - 1) / float(maxSize)
 	for con in contours:
+		pts = []
 		for pt in con:
-			pt[0] = int(pt[0] * scale)
-			pt[1] = int(pt[1] * scale)
-	# print(contours)
+			x = int((pt[0] - minx) * scale)
+			y = int((pt[1] - miny) * scale)
+			pt = [x, y]
+			pts.append(pt)
+		ptsNum = numpy.array(pts)
+		contoursInt.append(ptsNum)
+	print(contoursInt)
+	return contoursInt	
 
 def getFiles(argv):
 	files = ["point1.csv", "point2.csv", "point3.csv"]
-	if len(argv) > 2:
-		files.clear
+	if len(argv) > 1:
+		files = []
 		for f in argv:
 			files.append(f)
 		del files[0]
@@ -65,15 +77,17 @@ def main(argv):
 	files = getFiles(argv)
 	
 	# create contour and calc match test [[[x y]]]
-	contours = []
+	contoursReal = []
 	# contours = createContours()
 	for file in files:
 		ct = readContour(file)
-		contours.append(ct)
-	scaleNormalize(contours, 100)
+		contoursReal.append(ct)
+
+	normalizeSize = 200
+	contours = scaleNormalize(contoursReal, normalizeSize)
 	# print(contours)
 
-	drawing = numpy.zeros([100, 100], numpy.uint8)
+	drawing = numpy.zeros([normalizeSize, normalizeSize], numpy.uint8)
 	drawing = cv2.cvtColor(drawing, cv2.COLOR_GRAY2RGB)
 	index = 0
 	for cnt in contours:
