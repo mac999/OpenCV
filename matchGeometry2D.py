@@ -3,6 +3,7 @@
 # Date: 2020.1
 import cv2
 import numpy
+import math
 import sys, getopt
 
 def readContour(file):
@@ -61,8 +62,37 @@ def scaleNormalize(contours, size):
 			pts.append(pt)
 		ptsNum = numpy.array(pts)
 		contoursInt.append(ptsNum)
-	print(contoursInt)
+	# print(contoursInt)
 	return contoursInt	
+
+def getAngle(a, b, c):
+	ba = a - b
+	bc = c - b
+	base = (numpy.linalg.norm(ba) * numpy.linalg.norm(bc))
+	if base < 0.001:
+		return 90
+	cosine_angle = numpy.dot(ba, bc) / base
+	angle = numpy.arccos(cosine_angle)
+	pi = 22/7
+	return angle * (180 / pi)
+
+def smoothContours(contours, diffAngle = 15):
+	i = 0
+	for	con in contours:
+		i = i + 1
+		len1 = len(con)
+		j = 0		
+		while j < len(con) - 2:
+			pt = con[j]
+			pt2 = con[j + 1]
+			pt3 = con[j + 2]
+			angle = getAngle(pt3, pt, pt2)
+			if angle < diffAngle:
+				con = numpy.delete(con, j + 1)
+				# print(len(con), i, angle)
+			else:
+				j = j + 1
+		print(i, '.smooth = ', len1, ' -> ', len(con))
 
 def getFiles(argv):
 	files = ["point1.csv", "point2.csv", "point3.csv"]
@@ -85,6 +115,7 @@ def main(argv):
 
 	normalizeSize = 200
 	contours = scaleNormalize(contoursReal, normalizeSize)
+	smoothContours(contours)
 	# print(contours)
 
 	drawing = numpy.zeros([normalizeSize, normalizeSize], numpy.uint8)
@@ -96,7 +127,7 @@ def main(argv):
 		index = index + 1
 	cv2.imshow('output',drawing)
 
-	print("2D Geometry Distances Between \n-------------------------")
+	print("\n2D Geometry Distances Between \n-------------------------")
 	index = 0
 	for contour in contours:
 		m = cv2.matchShapes(contours[0], contour, cv2.CONTOURS_MATCH_I1, 0) # 1, 0)  # enum { CV_CONTOURS_MATCH_I1  =1, CV_CONTOURS_MATCH_I2  =2, CV_CONTOURS_MATCH_I3  =3};
