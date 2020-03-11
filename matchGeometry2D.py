@@ -113,7 +113,7 @@ def main(argv):
 		ct = readContour(file)
 		contoursReal.append(ct)
 
-	normalizeSize = 200
+	normalizeSize = 300
 	contours = scaleNormalize(contoursReal, normalizeSize)
 	smoothContours(contours)
 	# print(contours)
